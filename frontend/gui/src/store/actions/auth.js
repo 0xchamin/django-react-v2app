@@ -61,10 +61,10 @@ export const authLogin = (username, password) => {
       dispatch(authSuccess(token));
 
       //check if expiration has expired
-      dispatch(eckAuthTimeout(3600));
+      dispatch(checkAuthTimeout(3600));
 
     })
-    .cath(err => {
+    .catch(err => {
       dispatch(authFail(err));
     })
   }
@@ -93,11 +93,29 @@ export const authSignup = (username, email, password1, password2) => {
       dispatch(authSuccess(token));
 
       //check if expiration has expired
-      dispatch(eckAuthTimeout(3600));
+      dispatch(checkAuthTimeout(3600));
 
     })
     .cath(err => {
       dispatch(authFail(err));
     })
+  }
+}
+
+export const authCheckState = () => {
+  return dispatch => {
+    //if token in local storage:
+    const token = localStorage.getItem('token');
+    if(token === undefined){
+      dispatch(logout());
+    }else{
+      const expirationDate = new Date(localStorage.getItem('expirationDate'));
+      if (expirationDate <= new Date()){
+        dispatch(logout());
+      }else{
+        dispatch(authSuccess(token));
+        dispatch(checkAuthTimeout((expirationDate.getTime() - new Date().getTime()) / 1000));
+      }
+    }
   }
 }
